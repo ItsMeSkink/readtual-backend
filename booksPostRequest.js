@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
 import app from "./appSetup.js";
-import { user } from "./mongoSetup.js";
+import { readlist, user } from "./mongoSetup.js";
+import { BSON } from "bson";
 
 app.post("/addNewUnreadBook", (req, res) => {
   let data = req.query; // id, isbn, pagesToReadEverday required
@@ -45,6 +47,7 @@ app.post("/addNewUnreadBook", (req, res) => {
     }
   });
 });
+//___________________________________________________________________________________________
 
 app.post("/addReadBook", (req, res) => {
   let data = req.query; // id, isbn, pagesToReadEverday required
@@ -88,6 +91,8 @@ app.post("/addReadBook", (req, res) => {
     }
   });
 });
+
+//___________________________________________________________________________________________
 
 app.post("/toggleLikeBook", (req, res) => {
   let data = req.query; // id and isbn required
@@ -146,6 +151,8 @@ app.post("/toggleLikeBook", (req, res) => {
     }
   });
 });
+
+//___________________________________________________________________________________________
 
 app.post("/toggleSaveBook", (req, res) => {
   let data = req.query; // id and isbn required
@@ -207,9 +214,141 @@ app.post("/toggleSaveBook", (req, res) => {
   });
 });
 
-app.post('/createReadlist', (req, res) => {
+//___________________________________________________________________________________________
 
-  
+app.post("/createReadlist", (req, res) => {
+  let data = req.query; // id, username, readlist title required
 
+  let newReadlistObject = {
+    title: data.title,
+    books: [],
+    creator: {
+      id: data.id,
+      username: data.username,
+    },
+    isPublic: Boolean(data.isPublic) || false,
+  };
 
-})
+  new readlist(newReadlistObject).save().then((res1) => {
+    // this saves the data into the readlist collection of the bookbase database
+    res1.id = String(res1._id);
+
+    user
+      .findByIdAndUpdate(data.id, {
+        $push: {
+          readlistsCreated: res1, // this pushes the object into the "readlistsCreated" array of the user
+        },
+      })
+      .then((res2) => {
+        res.send(res1);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  });
+});
+
+//___________________________________________________________________________________________
+
+app.post("/addBookToReadlist", (req, res) => {
+  let data = req.query; // id, isbn, readlist id required
+
+  readlist
+    .findByIdAndUpdate(data.readlistId, {
+      $push: {
+        books: data.isbn,
+      },
+    })
+    .then((res1) => res1)
+    .catch((err) => {
+      console.error(err);
+    }); // adds the book to the "books" array in the document in the readlist collection of bookbase database
+
+  user.findById(data.id).then((res1) => {
+    // add to the user document
+
+    user
+      .findOneAndUpdate(
+        {
+          _id: data.id,
+          "readlistsCreated.id": data.readlistId,
+        },
+
+        {
+          $push: {
+            "readlistsCreated.$.books": data.isbn,
+          },
+        }
+      )
+      .then((res2) => {
+        res.send(res2.readlistsCreated);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  });
+  // two functions, add book to the public readlists database,
+});
+
+//___________________________________________________________________________________________
+
+app.post("/removeBookFromReadlist", (req, res) => {
+  let data = req.query; // id, isbn, readlist id required
+
+  readlist
+    .findByIdAndUpdate(data.readlistId, {
+      $pull: {
+        books: data.isbn,
+      },
+    })
+    .then((res1) => res1)
+    .catch((err) => {
+      console.error(err);
+    }); // removes the book from the "books" array in the document in the readlist collection of bookbase database
+
+  user.findById(data.id).then((res1) => {
+    // removes from the user document
+
+    user
+      .findOneAndUpdate(
+        {
+          _id: data.id,
+          "readlistsCreated.id": data.readlistId,
+        },
+
+        {
+          $pull: {
+            "readlistsCreated.$.books": data.isbn,
+          },
+        }
+      )
+      .then((res2) => {
+        res.send(res2.readlistsCreated);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  });
+  // two functions, add book to the public readlists database,
+});
+
+app.post("/saveReadlist", (req, res) => {
+  let data = req.query; // id, readlistId needed
+  //  adds book to the readlistsSaved
+  user.findByIdAndUpdate(data.id, {
+    $push: {
+      readlistsSaved: data.readlistId,
+    },
+  });
+});
+
+app.post("/unsaveReadlist", (req, res) => {
+  let data = req.query; // id, readlistId needed
+  //  removes book from the readlistsSaved
+
+  user.findByIdAndUpdate(data.id, {
+    $pull: {
+      readlistsSaved: data.readlistId,
+    },
+  });
+});

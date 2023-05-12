@@ -1,6 +1,6 @@
 import axios from "axios";
 import app from "./appSetup.js";
-import { user } from "./mongoSetup.js";
+import { readlist, user } from "./mongoSetup.js";
 import { GOOGLE_IMG_SCRAP } from "google-img-scrap";
 import { publicBook } from "./mongoSetup.js";
 const googleimages = GOOGLE_IMG_SCRAP;
@@ -21,7 +21,8 @@ app.get("/retrieveRawBookDataFromWeb", (req, res) => {
 
       async function getAuthorImage() {
         return await googleimages({
-          search: rawBooksData.authors != "" ? rawBooksData.authors[0] : "author",
+          search:
+            rawBooksData.authors != "" ? rawBooksData.authors[0] : "author",
         });
       } // refers to author i mage link
 
@@ -146,3 +147,25 @@ app.get("/retrieveBookDataArrayFromUserData", (req, res) => {
       console.error(err);
     });
 });
+
+app.get("/retrieveReadlistDataFromUserData", (req, res) => {
+  let data = req.query; // id needed
+  user.findById(data.id).then((res1) => {
+    let readlistCreatedByUser = res1.readlistsCreated;
+    res.send(readlistCreatedByUser);
+  });
+});
+
+app.get("/retrieveReadlistDataFromPublicData", (req, res) => {
+  let data = req.query; // readlist id needed
+  readlist.findById(data.readlistId).then((res1) => {
+    console.log(res1);
+    if (res1.isPublic === true) {
+      res.send(res1);
+    } else {
+      res.send(false);
+    }
+  });
+});
+
+

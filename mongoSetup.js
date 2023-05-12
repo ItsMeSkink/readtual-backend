@@ -56,11 +56,13 @@ const publicBookSchema = new mongoose.Schema({
 
 const readListSchema = new mongoose.Schema({
   title: String,
+  id: String,
   books: Array,
-  creator: String, // user-id and username
-
-})
+  creator: Object, // user-id and username
+  isPublic: Boolean,
+  categories: Array, // combines the categories of the books it contains
+});
 
 export const user = userBase.model("userbases", userSchema);
 export const publicBook = booksBase.model("booksbase", publicBookSchema);
-export const readlist = booksBase.model("readlistsbase", readListSchema)
+export const readlist = booksBase.model("readlistsbase", readListSchema);
