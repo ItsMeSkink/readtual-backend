@@ -358,3 +358,38 @@ app.post("/unsaveReadlist", (req, res) => {
     },
   });
 });
+
+//___________________________________________________________________________________________
+
+app.post("/progressAdd", (req, res) => {
+  let data = req.query; // id, isbn, toPageNow needed
+
+  user.findById(data.id).then((res1) => {
+    let booksRead = res1.booksRead;
+
+    let toBookAddToProgress = booksRead.find((item) => {
+      return (item.isbn = data.isbn);
+    });
+
+    // res.send(toBookAddToProgress);
+
+    user
+      .findOneAndUpdate(
+        {
+          _id: data.id,
+          "booksRead.isbn": data.isbn,
+        },
+        {
+          $set: {
+            "booksRead.$.status.pagesRead": Number(data.toPageNow),
+          },
+        }
+      )
+      .then((res2) => {
+        res.send(res2);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  });
+});
