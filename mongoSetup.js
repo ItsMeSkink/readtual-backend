@@ -60,6 +60,7 @@ const readListSchema = new mongoose.Schema({
   books: Array,
   creator: Object, // user-id and username
   isPublic: Boolean,
+  thumbnail: String,
   categories: Array, // combines the categories of the books it contains
 });
 

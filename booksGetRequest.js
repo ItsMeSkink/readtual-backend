@@ -1,12 +1,17 @@
 import axios from "axios";
 import app from "./appSetup.js";
 import { readlist, user } from "./mongoSetup.js";
-import { GOOGLE_IMG_SCRAP } from "google-img-scrap";
+import GoogleImages from "google-images";
 import { publicBook } from "./mongoSetup.js";
-const googleimages = GOOGLE_IMG_SCRAP;
+
+const imageSearch = new GoogleImages(
+  "a7a16257b87a14469",
+  "AIzaSyB1AqmJNBjQxfNZzuz4E1oNtNtGX5lp2hQ"
+);
 
 app.get("/retrieveRawBookDataFromWeb", (req, res) => {
   let data = req.query; //isbn required only
+
   axios
     .get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${data.isbn}`)
     .then(async (res1) => {
@@ -20,15 +25,10 @@ app.get("/retrieveRawBookDataFromWeb", (req, res) => {
       } // refers to select a better image from abe books instead of available in google database. if not available, selects the google one.
 
       async function getAuthorImage() {
-        return await googleimages({
-          search:
-            rawBooksData.authors != "" ? rawBooksData.authors[0] : "author",
-        });
-      } // refers to author i mage link
-
-      if (rawBooksData.authors == undefined) {
-        rawBooksData.authors = [""];
-      }
+        return imageSearch
+          .search(rawBooksData.authors ? rawBooksData.authors[0] : "author")
+          .then((images) => images[0].url);
+      } // recieves image from actual google custom search engine
 
       let exportableRawBookObject = {
         title: rawBooksData.title,
@@ -39,7 +39,7 @@ app.get("/retrieveRawBookDataFromWeb", (req, res) => {
         pages: rawBooksData.pageCount,
         averageRating: rawBooksData.averageRating,
         isbn: data.isbn,
-        authorImage: (await getAuthorImage()).result[0].url,
+        authorImage: await getAuthorImage(),
         categories: rawBooksData.categories || [],
       }; // this is the processed data which is actually exported for utilisation
 
@@ -50,7 +50,7 @@ app.get("/retrieveRawBookDataFromWeb", (req, res) => {
     });
 });
 
-async function getRawBookData(isbn) {
+export async function getRawBookData(isbn) {
   return axios
     .get("/retrieveRawBookDataFromWeb", {
       params: {
@@ -167,5 +167,3 @@ app.get("/retrieveReadlistDataFromPublicData", (req, res) => {
     }
   });
 });
-
-

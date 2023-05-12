@@ -3,3 +3,4 @@ import "./userDataGetRequests.js";
 import "./booksGetRequest.js";
 import "./booksPostRequest.js";
 import "./userDataPostRequests.js";
+import "./testing.js"
