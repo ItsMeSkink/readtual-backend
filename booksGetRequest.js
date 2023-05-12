@@ -11,7 +11,6 @@ const imageSearch = new GoogleImages(
 
 app.get("/retrieveRawBookDataFromWeb", (req, res) => {
   let data = req.query; //isbn required only
-
   axios
     .get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${data.isbn}`)
     .then(async (res1) => {
@@ -166,4 +165,58 @@ app.get("/retrieveReadlistDataFromPublicData", (req, res) => {
       res.send(false);
     }
   });
+});
+
+app.get("/retrieveBookDataFromArray", (req, res) => {
+  let data = req.query; // id and array needed
+  user
+    .findById(data.id)
+    .then(async (res1) => {
+      let booksExpandedArray = await Promise.all(
+        data.isbnArray.map(async (item) => {
+          return await getProcessedBookData(item, data.id);
+        })
+      )
+        .then((props) => props)
+        .catch((err) => {
+          console.error(err);
+        });
+      res.send(booksExpandedArray);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+});
+
+export async function getProcessedBookDataFromArray(isbnArray, id) {
+  return await axios
+    .get("/retrieveBookDataFromArray", {
+      params: {
+        isbnArray: isbnArray,
+        id: id,
+      },
+    })
+    .then((processedBookData) => processedBookData.data);
+}
+
+app.get("/retrieveBookDataForReadlist", (req, res) => {
+  let data = req.query; // readlistId and id needed
+  // id needed for personal touches
+
+  readlist.findById(data.readlistId).then(async (res1) => {
+    let expandedBooksArray = await getProcessedBookDataFromArray(
+      res1.books,
+      data.id
+    );
+    res.send(expandedBooksArray);
+  });
+});
+
+app.get("/retrieveReadlistsForAnIsbn", (req, res) => {
+  // this would transition to readtual database in the coming time
+  let data = req.query;
+
+  
+
+
 });

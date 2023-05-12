@@ -1,0 +1,22 @@
+[
+  {
+    "_id": "4c241a0c-386d-458b-9e37-0c37b4b0e1d1",
+    "colId": "a6091414-4a1c-4514-8f10-0e2ffc0dac0c",
+    "containerId": "",
+    "name": "localhost/retrieveRawBookDataFromWeb?isbn=9780198788607",
+    "url": "localhost/retrieveRawBookDataFromWeb?isbn=9780198788607",
+    "method": "GET",
+    "sortNum": 10000,
+    "created": "2023-05-12T11:06:09.851Z",
+    "modified": "2023-05-12T11:06:09.851Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "isbn",
+        "value": "9780198788607",
+        "isPath": false
+      }
+    ],
+    "tests": []
+  }
+]

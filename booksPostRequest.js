@@ -257,50 +257,37 @@ app.post("/addBookToReadlist", (req, res) => {
 
   // thumbnail check and first book's thumbnail add
 
-  // readlist
-  //   .findByIdAndUpdate(data.readlistId, {
-  //     $push: {
-  //       books: data.isbn,
-  //     },
-  //   })
-  //   .then((res1) => res1)
-  //   .catch((err) => {
-  //     console.error(err);
-  //   }); // adds the book to the "books" array in the document in the readlist collection of bookbase database
+  readlist
+    .findByIdAndUpdate(data.readlistId, {
+      $push: {
+        books: data.isbn,
+      },
+    })
+    .then((res1) => res1)
+    .catch((err) => {
+      console.error(err);
+    }); // adds the book to the "books" array in the document in the readlist collection of bookbase database
 
   user.findById(data.id).then(async (res1) => {
     // add to the user document
-
-    let currentReadlist = res1.readlistsCreated.find((item) => {
-      return (item.id = data.readlistId);
-    });
-
-    // if (currentReadlist.thumbnail === undefined) {
-    //   let bookData = await getRawBookData(data.isbn);
-    //   console.log(bookData);
-    // }
-    // console.log(currentReadlist);
-    // res.send(currentReadlist);
-
-    // user
-    //   .findOneAndUpdate(
-    //     {
-    //       _id: data.id,
-    //       "readlistsCreated.id": data.readlistId,
-    //     },
-
-    //     {
-    //       $push: {
-    //         "readlistsCreated.$.books": data.isbn,
-    //       },
-    //     }
-    //   )
-    //   .then((res2) => {
-    //     res.send(res2.readlistsCreated);
-    //   })
-    //   .catch((err) => {
-    //     console.error(err);
-    //   });
+    user
+      .findOneAndUpdate(
+        {
+          _id: data.id,
+          "readlistsCreated.id": data.readlistId,
+        },
+        {
+          $push: {
+            "readlistsCreated.$.books": data.isbn,
+          },
+        }
+      )
+      .then((res2) => {
+        res.send(res2.readlistsCreated);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   });
   // two functions, add book to the public readlists database,
 });

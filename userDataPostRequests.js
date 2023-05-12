@@ -54,3 +54,27 @@ app.post("/selectOrChangeUsername", (req, res) => {
     });
 });
 
+app.post("/changeEmail", (req, res) => {
+  let data = req.query;
+
+  user.findOne({ _id: data.id, email: data.email }).then((res1) => {
+    if (res1 !== undefined) {
+      user
+        .findByIdAndUpdate(data.id, {
+          $set: {
+            email: data.email,
+          },
+        })
+        .then((res2) => {
+          res.send(res2);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      res.send(false); // already exists
+    }
+  });
+});
+
+// login with google and twitter upcoming
